@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Describe.app</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        body {
+            height: 100vh;
+            width: 100vw;
+            background-image: url('https://media.cntraveler.com/photos/6480e43b302f6ffa633eddde/master/w_2580%2Cc_limit/Yosemite-half-dome-trent-erwin-U7NLcNo9NGA-unsplash.jpg');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 600px;
+            width: 90%;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+            justify-content: center;
+        }
+        
+        .logo-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            width: 40px;
+            height: 30px;
+        }
+        
+        .sound-wave {
+            display: flex;
+            align-items: center;
+            height: 30px;
+        }
+        
+        .wave {
+            background-color: #121212;
+            border-radius: 12px;
+            margin: 0 2px;
+        }
+        
+        .wave-1 {
+            height: 30px;
+            width: 8px;
+        }
+        
+        .wave-2 {
+            height: 24px;
+            width: 8px;
+        }
+        
+        .wave-3 {
+            height: 18px;
+            width: 8px;
+        }
+        
+        h1 {
+            font-size: 24px;
+            color: #000;
+            font-weight: normal;
+        }
+        
+        .email-form {
+            margin-top: 15px;
+            position: relative;
+            width: 100%;
+        }
+        
+        .input-container {
+            display: flex;
+            position: relative;
+            width: 100%;
+        }
+        
+        .email-form input {
+            flex-grow: 1;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            outline: none;
+            width: calc(100% - 50px);
+        }
+        
+        .submit-btn {
+            width: 40px;
+            height: 40px;
+            background-color: #000;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .error-message {
+            color: #ff0000;
+            font-size: 14px;
+            margin-top: 8px;
+            text-align: center;
+            display: none;
+        }
+        
+        .success-message {
+            color: #2ecc71;
+            font-size: 14px;
+            margin-top: 8px;
+            text-align: center;
+            display: none;
+        }
+        
+        .loading-indicator {
+            display: none;
+            text-align: center;
+            margin-top: 8px;
+            color: #666;
+        }
+        
+        #submissionFrame {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <div class="logo-icon">
+                <div class="sound-wave">
+                    <div class="wave wave-1"></div>
+                    <div class="wave wave-2"></div>
+                    <div class="wave wave-3"></div>
+                </div>
+            </div>
+            <h1>Discover new experiences with real-time audio</h1>
+        </div>
+        
+        <form id="emailForm" class="email-form">
+            <div class="input-container">
+                <input type="email" id="emailInput" placeholder="Email address" required>
+                <button type="submit" class="submit-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M5 12h14"></path>
+                        <path d="M12 5l7 7-7 7"></path>
+                    </svg>
+                </button>
+            </div>
+            <div id="loadingIndicator" class="loading-indicator">Submitting...</div>
+            <div id="errorMessage" class="error-message">Please enter a valid email</div>
+            <div id="successMessage" class="success-message">Thank you! Your email has been submitted.</div>
+        </form>
+    </div>
+    
+    <!-- Hidden iframe for submission -->
+    <iframe name="submissionFrame" id="submissionFrame"></iframe>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('emailForm');
+            const emailInput = document.getElementById('emailInput');
+            const errorMessage = document.getElementById('errorMessage');
+            const successMessage = document.getElementById('successMessage');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            
+            // Email validation regex pattern
+            const emailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+            
+            form.addEventListener('submit', function(event) {
+                event.preventDefault();
+                
+                const email = emailInput.value.trim();
+                
+                // Reset messages
+                errorMessage.style.display = 'none';
+                successMessage.style.display = 'none';
+                loadingIndicator.style.display = 'none';
+                
+                // Validate email
+                if (!email || !emailRegex.test(email)) {
+                    errorMessage.style.display = 'block';
+                    return;
+                }
+                
+                // If we get here, email is valid
+                submitToGoogleSheets(email);
+            });
+            
+            function submitToGoogleSheets(email) {
+                // Google Apps Script web app URL
+                const scriptURL = 'https://script.google.com/macros/s/AKfycbx2QmCbANfQ-1ZMisLAM6lD9OcjusI1DJQUe9HuqfjYtry6YH8hQyC4fqurjepmcj1-/exec';
+                
+                // Show loading indicator
+                loadingIndicator.style.display = 'block';
+                emailInput.disabled = true;
+                
+                // Create a form element to submit
+                const hiddenForm = document.createElement('form');
+                hiddenForm.method = 'POST';
+                hiddenForm.action = scriptURL;
+                hiddenForm.target = 'submissionFrame';
+                
+                // Add the email data
+                const emailField = document.createElement('input');
+                emailField.type = 'hidden';
+                emailField.name = 'email';
+                emailField.value = email;
+                hiddenForm.appendChild(emailField);
+                
+                // Add the datetime data
+                const datetimeField = document.createElement('input');
+                datetimeField.type = 'hidden';
+                datetimeField.name = 'datetime';
+                datetimeField.value = new Date().toISOString();
+                hiddenForm.appendChild(datetimeField);
+                
+                // Append form to body
+                document.body.appendChild(hiddenForm);
+                
+                // Submit the form
+                hiddenForm.submit();
+                
+                // Remove form after submission
+                setTimeout(() => {
+                    document.body.removeChild(hiddenForm);
+                }, 500);
+                
+                // Assume success after a delay (since we can't get a response due to CORS)
+                setTimeout(() => {
+                    loadingIndicator.style.display = 'none';
+                    successMessage.style.display = 'block';
+                    emailInput.value = '';
+                    emailInput.disabled = false;
+                }, 2000);
+                
+                // Log for debugging
+                console.log('Submitting email:', email);
+                console.log('Current datetime:', new Date().toISOString());
+            }
+        });
+    </script>
+</body>
+</html>
